@@ -1,0 +1,50 @@
+{
+    "name": "carshub/carshub-connector",
+    "description": "Connect your Laravel site to your CarsHub crew — syncs pages, events, members, and cars via the CarsHub API with a local JSON cache.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["carshub", "laravel", "crew", "sync"],
+    "authors": [
+        {
+            "name": "CarsHub",
+            "email": "dev@carshub.nl"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "illuminate/support": "^10|^11|^12",
+        "illuminate/http": "^10|^11|^12",
+        "illuminate/console": "^10|^11|^12",
+        "illuminate/contracts": "^10|^11|^12",
+        "illuminate/bus": "^10|^11|^12"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^9|^10",
+        "pestphp/pest": "^3",
+        "phpstan/phpstan": "^2"
+    },
+    "autoload": {
+        "psr-4": {
+            "CarsHub\\Connector\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "CarsHub\\Connector\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "CarsHub\\Connector\\CarsHubConnectorServiceProvider"
+            ],
+            "aliases": {
+                "CarsHub": "CarsHub\\Connector\\Facades\\CarsHub"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable"
+}
