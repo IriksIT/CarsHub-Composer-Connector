@@ -62,12 +62,13 @@ return [
     | Pages
     |--------------------------------------------------------------------------
     |
-    | The page slugs to fetch from the CarsHub pages API.  These map directly
-    | to the page keys configured in Crew Settings → Website Sync.
+    | The six page keys available through the CarsHub pages API.
+    | These are used as a reference — the `pages()` connector method fetches
+    | all six in one call via the bulk endpoint.
     |
     */
 
-    'pages' => ['home', 'events', 'members', 'cars', 'about'],
+    'pages' => ['home', 'about', 'crew_list', 'events', 'event_detail', 'contact'],
 
     /*
     |--------------------------------------------------------------------------

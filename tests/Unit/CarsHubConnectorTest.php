@@ -43,38 +43,88 @@ function makeConnector(JsonCacheStore $store, array $responses = []): CarsHubCon
 }
 
 describe('CarsHubConnector', function (): void {
-    it('fetches and caches a page on first read', function (): void {
+    it('fetches all pages in one call and caches them', function (): void {
+        $allPages = [
+            ['key' => 'home',         'is_enabled' => true,  'title' => 'Home',    'top_text' => null, 'settings' => []],
+            ['key' => 'about',        'is_enabled' => true,  'title' => null,       'top_text' => null, 'settings' => []],
+            ['key' => 'crew_list',    'is_enabled' => true,  'title' => null,       'top_text' => null, 'settings' => []],
+            ['key' => 'events',       'is_enabled' => true,  'title' => null,       'top_text' => null, 'settings' => []],
+            ['key' => 'event_detail', 'is_enabled' => false, 'title' => null,       'top_text' => null, 'settings' => []],
+            ['key' => 'contact',      'is_enabled' => true,  'title' => 'Contact',  'top_text' => null, 'settings' => []],
+        ];
+
         $connector = makeConnector($this->store, [
-            'https://carshub.nl/api/crews/test-crew/pages/home' => HttpFacade::response(['title' => 'Home']),
+            'https://carshub.nl/api/crews/test-crew/pages' => HttpFacade::response(['data' => $allPages]),
+        ]);
+
+        $result = $connector->pages();
+
+        expect($result)->toHaveCount(6)
+            ->and($result[0]['key'])->toBe('home')
+            ->and($this->store->isMissing('pages'))->toBeFalse();
+    });
+
+    it('fetches and caches an individual page on first read', function (): void {
+        $connector = makeConnector($this->store, [
+            'https://carshub.nl/api/crews/test-crew/pages/home' => HttpFacade::response(['data' => ['key' => 'home', 'title' => 'Home']]),
         ]);
 
         $result = $connector->page('home');
 
-        expect($result)->toBe(['title' => 'Home'])
+        expect($result)->toBe(['key' => 'home', 'title' => 'Home'])
             ->and($this->store->isMissing('pages.home'))->toBeFalse();
     });
 
     it('returns cached page data without hitting the API on second read', function (): void {
-        $this->store->put('pages.home', ['title' => 'Cached Home']);
+        $this->store->put('pages.home', ['key' => 'home', 'title' => 'Cached Home']);
 
         $connector = makeConnector($this->store);
 
         HttpFacade::assertNothingSent();
 
         $result = $connector->page('home');
-        expect($result)->toBe(['title' => 'Cached Home']);
+        expect($result)->toBe(['key' => 'home', 'title' => 'Cached Home']);
     });
 
-    it('returns stale data and does not crash when cache is expired', function (): void {
+    it('fetches event detail including attendees', function (): void {
+        $detail = [
+            'id'              => 3,
+            'title'           => 'Summer Meet 2026',
+            'attendees_count' => 2,
+            'attendees'       => [
+                ['id' => 1, 'name' => 'Sam',   'username' => 'sam_skyline', 'avatar_url' => null, 'status' => 'attending'],
+                ['id' => 2, 'name' => 'Silvia', 'username' => 'silvia_supra', 'avatar_url' => null, 'status' => 'maybe'],
+            ],
+        ];
+
+        $connector = makeConnector($this->store, [
+            'https://carshub.nl/api/crews/test-crew/events/3' => HttpFacade::response(['data' => $detail]),
+        ]);
+
+        $result = $connector->eventDetail(3);
+
+        expect($result)->not->toBeNull()
+            ->and($result['attendees_count'])->toBe(2)
+            ->and($result['attendees'][0]['status'])->toBe('attending')
+            ->and($this->store->isMissing('events.detail.3'))->toBeFalse();
+    });
+
+    it('returns null for event detail when API fails and cache is empty', function (): void {
+        $connector = makeConnector($this->store, [
+            'https://carshub.nl/api/crews/test-crew/events/99' => HttpFacade::response([], 404),
+        ]);
+
+        expect($connector->eventDetail(99))->toBeNull();
+    });
+
+    it('returns stale members and does not crash when cache is expired', function (): void {
         $this->store->put('members', [['name' => 'Sam']]);
 
-        // Override TTL to 0 so it's immediately stale
         config(['carshub.cache.ttl.members' => 0]);
 
         $connector = makeConnector($this->store);
         $result    = $connector->members();
 
-        // Stale data should be served (stale-while-revalidate)
         expect($result)->toBe([['name' => 'Sam']]);
     });
 
@@ -83,20 +133,18 @@ describe('CarsHubConnector', function (): void {
             'https://carshub.nl/api/crews/test-crew/pages/home' => HttpFacade::response([], 500),
         ]);
 
-        $result = $connector->page('home');
-        expect($result)->toBeNull();
+        expect($connector->page('home'))->toBeNull();
     });
 
     it('syncs only stale keys when force is false', function (): void {
-        // Put fresh events cache
         $this->store->put('events.upcoming', [['id' => 1]]);
         $this->store->put('events.past', [['id' => 2]]);
 
         HttpFacade::fake([
-            'https://carshub.nl/api/crews/test-crew/members' => HttpFacade::response([['id' => 1]]),
-            'https://carshub.nl/api/crews/test-crew/cars'    => HttpFacade::response([]),
-            'https://carshub.nl/api/crews/test-crew/stats'   => HttpFacade::response(['total' => 5]),
-            'https://carshub.nl/api/crews/test-crew/pages/*' => HttpFacade::response([]),
+            'https://carshub.nl/api/crews/test-crew/members' => HttpFacade::response(['data' => [['id' => 1]]]),
+            'https://carshub.nl/api/crews/test-crew/cars'    => HttpFacade::response(['data' => []]),
+            'https://carshub.nl/api/crews/test-crew/stats'   => HttpFacade::response(['data' => ['total' => 5]]),
+            'https://carshub.nl/api/crews/test-crew/pages'   => HttpFacade::response(['data' => []]),
         ]);
 
         $connector = new CarsHubConnector(
@@ -115,8 +163,8 @@ describe('CarsHubConnector', function (): void {
         $this->store->put('events.upcoming', [['id' => 1]]);
 
         HttpFacade::fake([
-            'https://carshub.nl/api/crews/test-crew/events/upcoming' => HttpFacade::response([['id' => 99]]),
-            'https://carshub.nl/api/crews/test-crew/events/past'     => HttpFacade::response([]),
+            'https://carshub.nl/api/crews/test-crew/events/upcoming' => HttpFacade::response(['data' => [['id' => 99]]]),
+            'https://carshub.nl/api/crews/test-crew/events/past'     => HttpFacade::response(['data' => []]),
         ]);
 
         $connector = new CarsHubConnector(
@@ -136,22 +184,34 @@ describe('CarsHubConnector', function (): void {
         expect($connector->hasEmptyCache())->toBeTrue();
     });
 
+    it('hasEmptyCache returns false when all core keys are present', function (): void {
+        foreach (['pages', 'events.upcoming', 'events.past', 'members', 'cars', 'stats'] as $key) {
+            $this->store->put($key, []);
+        }
+
+        $connector = makeConnector($this->store);
+        expect($connector->hasEmptyCache())->toBeFalse();
+    });
+
     it('clearCache removes all files', function (): void {
         $this->store->put('members', []);
         $this->store->put('events.upcoming', []);
+        $this->store->put('pages', []);
 
         $connector = makeConnector($this->store);
         $connector->clearCache();
 
         expect($this->store->isMissing('members'))->toBeTrue()
-            ->and($this->store->isMissing('events.upcoming'))->toBeTrue();
+            ->and($this->store->isMissing('events.upcoming'))->toBeTrue()
+            ->and($this->store->isMissing('pages'))->toBeTrue();
     });
 
     it('cacheStatus lists all expected keys', function (): void {
         $connector = makeConnector($this->store);
         $status    = $connector->cacheStatus();
 
-        expect($status)->toHaveKey('events.upcoming')
+        expect($status)->toHaveKey('pages')
+            ->toHaveKey('events.upcoming')
             ->toHaveKey('events.past')
             ->toHaveKey('members')
             ->toHaveKey('cars')

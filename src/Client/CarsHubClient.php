@@ -23,6 +23,13 @@ final class CarsHubClient
         }
     }
 
+    /** @return list<array<string, mixed>> */
+    public function getPages(): array
+    {
+        /** @var list<array<string, mixed>> */
+        return $this->get("crews/{$this->crewSlug}/pages");
+    }
+
     /** @return array<string, mixed> */
     public function getPage(string $page): array
     {
@@ -40,7 +47,7 @@ final class CarsHubClient
     }
 
     /** @return array<string, mixed> */
-    public function getEventDetail(int|string $eventId): array
+    public function getEventDetail(int $eventId): array
     {
         return $this->get("crews/{$this->crewSlug}/events/{$eventId}");
     }
@@ -66,6 +73,10 @@ final class CarsHubClient
     }
 
     /**
+     * Performs a GET request and unwraps the `data` envelope returned by every
+     * CarsHub API endpoint.  Raw responses look like `{"data": [...]}` or
+     * `{"data": {...}}` — callers always receive the inner value directly.
+     *
      * @return array<mixed>
      * @throws CarsHubApiException
      */
@@ -88,7 +99,12 @@ final class CarsHubClient
         /** @var array<mixed>|null $json */
         $json = $response->json();
 
-        return is_array($json) ? $json : [];
+        if (! is_array($json)) {
+            return [];
+        }
+
+        /** @var array<mixed> */
+        return array_key_exists('data', $json) ? $json['data'] : $json;
     }
 
     private function assertSuccessful(Response $response, string $url): void

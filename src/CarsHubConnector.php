@@ -26,26 +26,50 @@ final class CarsHubConnector
     /** @var array<string, int> */
     private array $ttl;
 
-    /** @var list<string> */
-    private array $pages;
-
     public function __construct(
         private readonly JsonCacheStore $cache,
         private readonly CarsHubClient $client,
         private readonly bool $syncOnBoot,
     ) {
-        $this->ttl   = (array) config('carshub.cache.ttl', []);
-        $this->pages = (array) config('carshub.pages', ['home', 'events', 'members', 'cars', 'about']);
+        $this->ttl = (array) config('carshub.cache.ttl', []);
     }
 
     // -------------------------------------------------------------------------
     // Public getters (stale-while-revalidate)
     // -------------------------------------------------------------------------
 
-    /** @return array<string, mixed>|null */
+    /**
+     * All six page configurations in one call.
+     * Keys: home, about, crew_list, events, event_detail, contact.
+     *
+     * @return list<array<string, mixed>>
+     */
+    public function pages(): array
+    {
+        /** @var list<array<string, mixed>> */
+        return $this->resolve('pages', $this->ttl('pages'), fn () => $this->client->getPages()) ?? [];
+    }
+
+    /**
+     * Single page configuration by key.
+     * Prefer `pages()` for bulk reads — this is a targeted fallback.
+     *
+     * @return array<string, mixed>|null
+     */
     public function page(string $slug): ?array
     {
         return $this->resolve("pages.{$slug}", $this->ttl('pages'), fn () => $this->client->getPage($slug));
+    }
+
+    /**
+     * Event detail including `attendees` (attending + maybe) and `attendees_count`.
+     * Cached under events.detail.{id}.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function eventDetail(int $id): ?array
+    {
+        return $this->resolve("events.detail.{$id}", $this->ttl('events'), fn () => $this->client->getEventDetail($id));
     }
 
     /**
@@ -109,16 +133,10 @@ final class CarsHubConnector
         return $result;
     }
 
-    /** Returns true if any cache file is missing (used by the boot check). */
+    /** Returns true if any core cache file is missing (used by the boot check). */
     public function hasEmptyCache(): bool
     {
-        foreach ($this->pages as $slug) {
-            if ($this->cache->isMissing("pages.{$slug}")) {
-                return true;
-            }
-        }
-
-        $keys = ['events.upcoming', 'events.past', 'members', 'cars', 'stats'];
+        $keys = ['pages', 'events.upcoming', 'events.past', 'members', 'cars', 'stats'];
 
         foreach ($keys as $key) {
             if ($this->cache->isMissing($key)) {
@@ -132,24 +150,16 @@ final class CarsHubConnector
     /** @return array<string, array{key: string, stale: bool, fetched_at: int|null}> */
     public function cacheStatus(): array
     {
-        $status = [];
-
-        foreach ($this->pages as $slug) {
-            $key           = "pages.{$slug}";
-            $status[$key]  = [
-                'key'        => $key,
-                'stale'      => $this->cache->isStale($key, $this->ttl('pages')),
-                'fetched_at' => $this->cache->fetchedAt($key),
-            ];
-        }
-
         $typed = [
+            'pages'           => 'pages',
             'events.upcoming' => 'events',
             'events.past'     => 'events',
             'members'         => 'members',
             'cars'            => 'cars',
             'stats'           => 'stats',
         ];
+
+        $status = [];
 
         foreach ($typed as $key => $type) {
             $status[$key] = [
@@ -173,16 +183,12 @@ final class CarsHubConnector
 
     private function syncPages(bool $force, SyncResult $result): void
     {
-        foreach ($this->pages as $slug) {
-            $key = "pages.{$slug}";
-
-            if (! $force && ! $this->cache->isStale($key, $this->ttl('pages'))) {
-                $result->skipped($key);
-                continue;
-            }
-
-            $this->fetch($key, fn () => $this->client->getPage($slug), $result);
+        if (! $force && ! $this->cache->isStale('pages', $this->ttl('pages'))) {
+            $result->skipped('pages');
+            return;
         }
+
+        $this->fetch('pages', fn () => $this->client->getPages(), $result);
     }
 
     private function syncEvents(bool $force, SyncResult $result): void

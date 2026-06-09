@@ -50,20 +50,31 @@ Make sure Laravel's scheduler is running:
 ```php
 use CarsHub\Connector\Facades\CarsHub;
 
-// Get a page's settings (home, events, members, cars, about)
+// All six page configurations in one call — use this in your layout/middleware
+// to determine which pages are enabled and what their titles/settings are.
+// Keys: home, about, crew_list, events, event_detail, contact
+$allPages = CarsHub::pages();
+
+// Or fetch a single page by key (useful for page-level controllers)
 $home = CarsHub::page('home');
 
-// Get upcoming or past events
-$events = CarsHub::events('upcoming');
-$past   = CarsHub::events('past');
+// Upcoming and past events (list — id, title, location, starts_at, ends_at, avatar_url, banner_url)
+$upcoming = CarsHub::events('upcoming');
+$past     = CarsHub::events('past');
 
-// Get crew members
+// Full event detail including the attendee list (attending + maybe)
+$detail = CarsHub::eventDetail(3);
+// $detail['attendees']       — list of attendees
+// $detail['attendees_count'] — total attending/maybe count
+
+// Crew member roster (id, name, username, avatar_url, role, staff_title, joined_at)
 $members = CarsHub::members();
 
-// Get crew cars
+// All active cars owned by crew members
 $cars = CarsHub::cars();
 
-// Get crew stats (member count, car count, event count, etc.)
+// Crew overview stats (members, cars, representatives, past_events, upcoming_events)
+// Also includes crew info (name, description, avatar_url, banner_url)
 $stats = CarsHub::stats();
 ```
 
@@ -99,6 +110,7 @@ All options are in `config/carshub.php` after publishing.
 | `cache.ttl.pages` | `86400` | Page cache TTL in seconds (24 h) |
 | `cache.ttl.events` | `3600` | Events cache TTL in seconds (1 h) |
 | `cache.ttl.members` | `3600` | Members cache TTL in seconds (1 h) |
+| `cache.ttl.pages` | `86400` | Pages cache TTL in seconds (24 h) |
 | `sync_on_boot` | `true` | Dispatch a sync job on first boot if cache is empty |
 | `timeout` | `10` | HTTP request timeout in seconds |
 
@@ -108,15 +120,16 @@ Cached data is stored as JSON files under `storage/carshub/`:
 
 ```
 storage/carshub/
+  pages.json                  ← all 6 page configs (bulk endpoint, refreshed daily)
   pages/
-    home.json
-    events.json
-    members.json
-    cars.json
+    home.json                 ← only written if you call CarsHub::page('home') directly
     about.json
+    …
   events/
     upcoming.json
     past.json
+    detail/
+      3.json                  ← written on first CarsHub::eventDetail(3) call
   members.json
   cars.json
   stats.json
