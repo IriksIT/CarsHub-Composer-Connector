@@ -12,8 +12,87 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  composer-validate:
+    name: Composer Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring
+          coverage: none
+
+      - name: Validate composer.json
+        run: composer validate --no-check-publish
+
+  composer-audit:
+    name: Composer Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring
+          coverage: none
+
+      - name: Run composer audit
+        run: composer audit --locked
+
+  phpstan:
+    name: PHPStan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v4
+        with:
+          composer-options: "--no-scripts"
+
+      - name: Run PHPStan
+        run: ./vendor/bin/phpstan --error-format=github --memory-limit=512M
+
+  tests:
+    name: Pest Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: mbstring, dom, fileinfo
+          coverage: none
+
+      - name: Install dependencies
+        uses: ramsey/composer-install@v4
+        with:
+          composer-options: "--no-scripts"
+
+      - name: Run Pest
+        run: ./vendor/bin/pest --stop-on-failure
+
   release:
     name: Release
+    needs: [composer-validate, composer-audit, phpstan, tests]
     runs-on: ubuntu-latest
 
     permissions:
