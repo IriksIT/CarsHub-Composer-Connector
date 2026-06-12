@@ -15,11 +15,16 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     if (is_dir($this->cacheDir)) {
-        $files = glob($this->cacheDir . '/**/*') ?: [];
-        foreach (array_reverse($files) as $f) {
-            is_dir($f) ? rmdir($f) : unlink($f);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->cacheDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
-        @rmdir($this->cacheDir);
+
+        rmdir($this->cacheDir);
     }
 });
 

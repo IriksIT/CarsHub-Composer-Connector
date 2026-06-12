@@ -33,6 +33,7 @@ final class CarsHubClient
     /** @return array<string, mixed> */
     public function getPage(string $page): array
     {
+        /** @var array<string, mixed> */
         return $this->get("crews/{$this->crewSlug}/pages/{$page}");
     }
 
@@ -49,6 +50,7 @@ final class CarsHubClient
     /** @return array<string, mixed> */
     public function getEventDetail(int $eventId): array
     {
+        /** @var array<string, mixed> */
         return $this->get("crews/{$this->crewSlug}/events/{$eventId}");
     }
 
@@ -69,6 +71,7 @@ final class CarsHubClient
     /** @return array<string, mixed> */
     public function getStats(): array
     {
+        /** @var array<string, mixed> */
         return $this->get("crews/{$this->crewSlug}/stats");
     }
 

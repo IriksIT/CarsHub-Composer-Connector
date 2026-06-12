@@ -11,7 +11,15 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     if (is_dir($this->dir)) {
-        array_map('unlink', glob($this->dir . '/*') ?: []);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->dir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
+        }
+
         rmdir($this->dir);
     }
 });

@@ -2,5 +2,4 @@ parameters:
     level: 10
     paths:
         - src
-    checkMissingIterableValueType: false
     treatPhpDocTypesAsCertain: false

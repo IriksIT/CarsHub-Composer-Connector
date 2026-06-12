@@ -29,9 +29,26 @@ final class CarsHubConnector
     public function __construct(
         private readonly JsonCacheStore $cache,
         private readonly CarsHubClient $client,
-        private readonly bool $syncOnBoot,
     ) {
-        $this->ttl = (array) config('carshub.cache.ttl', []);
+        $this->ttl = self::normalizeTtl(config('carshub.cache.ttl', []));
+    }
+
+    /** @return array<string, int> */
+    private static function normalizeTtl(mixed $value): array
+    {
+        if (! is_array($value)) {
+            return [];
+        }
+
+        $ttl = [];
+
+        foreach ($value as $key => $item) {
+            if (is_string($key) && is_int($item)) {
+                $ttl[$key] = $item;
+            }
+        }
+
+        return $ttl;
     }
 
     // -------------------------------------------------------------------------
@@ -58,7 +75,14 @@ final class CarsHubConnector
      */
     public function page(string $slug): ?array
     {
-        return $this->resolve("pages.{$slug}", $this->ttl('pages'), fn () => $this->client->getPage($slug));
+        $data = $this->resolve("pages.{$slug}", $this->ttl('pages'), fn () => $this->client->getPage($slug));
+
+        if ($data === null) {
+            return null;
+        }
+
+        /** @var array<string, mixed> */
+        return $data;
     }
 
     /**
@@ -69,7 +93,14 @@ final class CarsHubConnector
      */
     public function eventDetail(int $id): ?array
     {
-        return $this->resolve("events.detail.{$id}", $this->ttl('events'), fn () => $this->client->getEventDetail($id));
+        $data = $this->resolve("events.detail.{$id}", $this->ttl('events'), fn () => $this->client->getEventDetail($id));
+
+        if ($data === null) {
+            return null;
+        }
+
+        /** @var array<string, mixed> */
+        return $data;
     }
 
     /**

@@ -22,17 +22,18 @@ final class CarsHubConnectorServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/carshub.php', 'carshub');
 
         $this->app->singleton(JsonCacheStore::class, function (Application $app): JsonCacheStore {
-            $path = storage_path((string) config('carshub.cache.path', 'carshub'));
+            $configured = self::configString('carshub.cache.path', 'carshub');
+            $path = self::isAbsolutePath($configured) ? $configured : storage_path($configured);
             return new JsonCacheStore($path);
         });
 
         $this->app->singleton(CarsHubClient::class, function (Application $app): CarsHubClient {
             return new CarsHubClient(
                 http: $app->make(Http::class),
-                baseUrl: (string) config('carshub.api_base_url', 'https://carshub.nl/api'),
-                apiKey: (string) config('carshub.api_key', ''),
-                crewSlug: (string) config('carshub.crew_slug', ''),
-                timeout: (int) config('carshub.timeout', 10),
+                baseUrl: self::configString('carshub.api_base_url', 'https://carshub.nl/api'),
+                apiKey: self::configString('carshub.api_key', ''),
+                crewSlug: self::configString('carshub.crew_slug', ''),
+                timeout: self::configInt('carshub.timeout', 10),
             );
         });
 
@@ -40,9 +41,29 @@ final class CarsHubConnectorServiceProvider extends ServiceProvider
             return new CarsHubConnector(
                 cache: $app->make(JsonCacheStore::class),
                 client: $app->make(CarsHubClient::class),
-                syncOnBoot: (bool) config('carshub.sync_on_boot', true),
             );
         });
+    }
+
+    private static function configString(string $key, string $default): string
+    {
+        $value = config($key, $default);
+
+        return is_string($value) ? $value : $default;
+    }
+
+    private static function configInt(string $key, int $default): int
+    {
+        $value = config($key, $default);
+
+        return is_int($value) ? $value : $default;
+    }
+
+    private static function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\')
+            || preg_match('/^[A-Za-z]:[\\\\\/]/', $path) === 1;
     }
 
     public function boot(): void

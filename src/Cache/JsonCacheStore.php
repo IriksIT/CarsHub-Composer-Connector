@@ -46,7 +46,7 @@ final class JsonCacheStore
             return null;
         }
 
-        if ((time() - (int) $entry['fetched_at']) > $ttl) {
+        if ((time() - (int) $entry['fetched_at']) >= $ttl) {
             return null;
         }
 
@@ -100,7 +100,7 @@ final class JsonCacheStore
             return true;
         }
 
-        return (time() - (int) $entry['fetched_at']) > $ttl;
+        return (time() - (int) $entry['fetched_at']) >= $ttl;
     }
 
     /** Returns true if the cache file does not exist at all. */
@@ -112,7 +112,9 @@ final class JsonCacheStore
     /** Stores data under the given key with the current timestamp. */
     public function put(string $key, mixed $data): void
     {
-        $this->ensureDirectory();
+        $path = $this->path($key);
+
+        $this->ensureDirectory(dirname($path));
 
         $entry = json_encode([
             'fetched_at' => time(),
@@ -123,7 +125,7 @@ final class JsonCacheStore
             throw new RuntimeException("Failed to JSON-encode cache entry for key '{$key}'.");
         }
 
-        file_put_contents($this->path($key), $entry, LOCK_EX);
+        file_put_contents($path, $entry, LOCK_EX);
     }
 
     /** Deletes a single cache entry. */
@@ -136,21 +138,23 @@ final class JsonCacheStore
         }
     }
 
-    /** Deletes all cache files in the cache directory. */
+    /** Deletes all cache files in the cache directory, including nested subdirectories. */
     public function flush(): void
     {
         if (! is_dir($this->basePath)) {
             return;
         }
 
-        $files = glob($this->basePath . '/*.json');
+        $iterator = new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($this->basePath, \FilesystemIterator::SKIP_DOTS),
+            \RecursiveIteratorIterator::CHILD_FIRST,
+        );
 
-        if ($files === false) {
-            return;
-        }
-
-        foreach ($files as $file) {
-            unlink($file);
+        /** @var \SplFileInfo $item */
+        foreach ($iterator as $item) {
+            if ($item->isFile() && $item->getExtension() === 'json') {
+                unlink($item->getPathname());
+            }
         }
     }
 
@@ -183,10 +187,10 @@ final class JsonCacheStore
         return $this->basePath . DIRECTORY_SEPARATOR . $relative;
     }
 
-    private function ensureDirectory(): void
+    private function ensureDirectory(string $path): void
     {
-        if (! is_dir($this->basePath)) {
-            mkdir($this->basePath, 0755, true);
+        if (! is_dir($path)) {
+            mkdir($path, 0755, true);
         }
     }
 }

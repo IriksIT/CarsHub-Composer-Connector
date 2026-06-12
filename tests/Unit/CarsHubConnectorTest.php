@@ -19,11 +19,16 @@ beforeEach(function (): void {
 
 afterEach(function (): void {
     if (is_dir($this->cacheDir)) {
-        $files = glob($this->cacheDir . '/**/*') ?: [];
-        foreach (array_reverse($files) as $f) {
-            is_dir($f) ? rmdir($f) : unlink($f);
+        $iterator = new RecursiveIteratorIterator(
+            new RecursiveDirectoryIterator($this->cacheDir, FilesystemIterator::SKIP_DOTS),
+            RecursiveIteratorIterator::CHILD_FIRST,
+        );
+
+        foreach ($iterator as $item) {
+            $item->isDir() ? rmdir($item->getPathname()) : unlink($item->getPathname());
         }
-        @rmdir($this->cacheDir);
+
+        rmdir($this->cacheDir);
     }
 });
 
@@ -39,7 +44,7 @@ function makeConnector(JsonCacheStore $store, array $responses = []): CarsHubCon
         timeout: 5,
     );
 
-    return new CarsHubConnector(cache: $store, client: $client, syncOnBoot: false);
+    return new CarsHubConnector(cache: $store, client: $client);
 }
 
 describe('CarsHubConnector', function (): void {
@@ -150,7 +155,6 @@ describe('CarsHubConnector', function (): void {
         $connector = new CarsHubConnector(
             cache: $this->store,
             client: new CarsHubClient(app(Http::class), 'https://carshub.nl/api', 'test-key', 'test-crew', 5),
-            syncOnBoot: false,
         );
 
         $result = $connector->sync(['events'], false);
@@ -170,7 +174,6 @@ describe('CarsHubConnector', function (): void {
         $connector = new CarsHubConnector(
             cache: $this->store,
             client: new CarsHubClient(app(Http::class), 'https://carshub.nl/api', 'test-key', 'test-crew', 5),
-            syncOnBoot: false,
         );
 
         $result = $connector->sync(['events'], force: true);
