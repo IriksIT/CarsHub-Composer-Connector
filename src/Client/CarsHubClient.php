@@ -17,6 +17,7 @@ final class CarsHubClient
         private readonly string $apiKey,
         private readonly string $crewSlug,
         private readonly int $timeout,
+        private readonly ?string $importKey = null,
     ) {
         if ($this->apiKey === '' || $this->crewSlug === '') {
             throw CarsHubApiException::missingCredentials();
@@ -75,6 +76,78 @@ final class CarsHubClient
         return $this->get("crews/{$this->crewSlug}/stats");
     }
 
+    // -------------------------------------------------------------------------
+    // Event Import API (requires event_import_key)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Create an event on a system-managed crew via the import API.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws CarsHubApiException
+     */
+    public function createEvent(array $data): array
+    {
+        $url = $this->url("crews/{$this->crewSlug}/import/events");
+
+        try {
+            $response = $this->importPending()->post($url, $data);
+        } catch (ConnectionException $e) {
+            throw CarsHubApiException::connectionFailed($url, $e->getMessage());
+        }
+
+        $this->assertSuccessful($response, $url);
+
+        /** @var array<string, mixed> */
+        return $this->unwrapData($response);
+    }
+
+    /**
+     * Replace all fields of an existing imported event.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws CarsHubApiException
+     */
+    public function updateEvent(int $id, array $data): array
+    {
+        $url = $this->url("crews/{$this->crewSlug}/import/events/{$id}");
+
+        try {
+            $response = $this->importPending()->put($url, $data);
+        } catch (ConnectionException $e) {
+            throw CarsHubApiException::connectionFailed($url, $e->getMessage());
+        }
+
+        $this->assertSuccessful($response, $url);
+
+        /** @var array<string, mixed> */
+        return $this->unwrapData($response);
+    }
+
+    /**
+     * Delete an imported event permanently.
+     *
+     * @throws CarsHubApiException
+     */
+    public function deleteEvent(int $id): void
+    {
+        $url = $this->url("crews/{$this->crewSlug}/import/events/{$id}");
+
+        try {
+            $response = $this->importPending()->delete($url);
+        } catch (ConnectionException $e) {
+            throw CarsHubApiException::connectionFailed($url, $e->getMessage());
+        }
+
+        $this->assertSuccessful($response, $url);
+    }
+
+    // -------------------------------------------------------------------------
+    // Private helpers
+    // -------------------------------------------------------------------------
+
     /**
      * Performs a GET request and unwraps the `data` envelope returned by every
      * CarsHub API endpoint.  Raw responses look like `{"data": [...]}` or
@@ -85,7 +158,7 @@ final class CarsHubClient
      */
     private function get(string $endpoint): array
     {
-        $url = rtrim($this->baseUrl, '/') . '/' . ltrim($endpoint, '/');
+        $url = $this->url($endpoint);
 
         try {
             $response = $this->http
@@ -99,6 +172,38 @@ final class CarsHubClient
 
         $this->assertSuccessful($response, $url);
 
+        return $this->unwrapData($response);
+    }
+
+    private function assertSuccessful(Response $response, string $url): void
+    {
+        if (! $response->successful()) {
+            throw CarsHubApiException::httpError($url, $response->status());
+        }
+    }
+
+    private function url(string $endpoint): string
+    {
+        return rtrim($this->baseUrl, '/') . '/' . ltrim($endpoint, '/');
+    }
+
+    /** @return \Illuminate\Http\Client\PendingRequest */
+    private function importPending(): \Illuminate\Http\Client\PendingRequest
+    {
+        if ($this->importKey === null || $this->importKey === '') {
+            throw CarsHubApiException::missingImportKey();
+        }
+
+        return $this->http
+            ->withToken($this->importKey)
+            ->timeout($this->timeout)
+            ->acceptJson()
+            ->asJson();
+    }
+
+    /** @return array<mixed> */
+    private function unwrapData(Response $response): array
+    {
         /** @var array<mixed>|null $json */
         $json = $response->json();
 
@@ -108,12 +213,5 @@ final class CarsHubClient
 
         /** @var array<mixed> */
         return array_key_exists('data', $json) ? $json['data'] : $json;
-    }
-
-    private function assertSuccessful(Response $response, string $url): void
-    {
-        if (! $response->successful()) {
-            throw CarsHubApiException::httpError($url, $response->status());
-        }
     }
 }

@@ -22,6 +22,20 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Event import key
+    |--------------------------------------------------------------------------
+    |
+    | Only needed for system-managed crews. This key is generated when the crew
+    | is created via the `crews:create-system` command on CarsHub. It authorises
+    | calls to the event import API (create, update, delete events).
+    | Format: eik_<48 random characters>.
+    |
+    */
+
+    'event_import_key' => env('CARSHUB_EVENT_IMPORT_KEY'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Cache
     |--------------------------------------------------------------------------
     |

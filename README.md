@@ -32,9 +32,12 @@ Add your credentials to `.env`:
 ```dotenv
 CARSHUB_API_KEY=your-api-key-from-crew-settings
 CARSHUB_CREW_SLUG=your-crew-slug
+
+# System-managed crews only — needed for event import (create/update/delete)
+CARSHUB_EVENT_IMPORT_KEY=eik_...
 ```
 
-You can find both values in **Crew Settings → Website Sync** on carshub.nl.
+You can find `CARSHUB_API_KEY` and `CARSHUB_CREW_SLUG` in **Crew Settings → Website Sync** on carshub.nl. The `CARSHUB_EVENT_IMPORT_KEY` is shown when the crew is created via the `crews:create-system` command.
 
 Make sure Laravel's scheduler is running:
 
@@ -78,6 +81,44 @@ $cars = CarsHub::cars();
 $stats = CarsHub::stats();
 ```
 
+### Event import (system-managed crews only)
+
+If your crew is a system-managed crew with an `CARSHUB_EVENT_IMPORT_KEY` configured, you can write events directly from your application. All write methods throw `CarsHubApiException` on failure — wrap them in a try/catch.
+
+```php
+use CarsHub\Connector\Facades\CarsHub;
+use CarsHub\Connector\Exceptions\CarsHubApiException;
+
+try {
+    // Create a new event — returns the created event array
+    $event = CarsHub::createEvent([
+        'title'        => 'Silvia Cup Round 1',
+        'description'  => 'First round of the Nissan Silvia one-make series.',
+        'location'     => 'Circuit Zandvoort',
+        'address'      => 'Burgemeester van Alphenstraat 108, Zandvoort',
+        'starts_at'    => '2026-08-15T09:00:00Z',
+        'ends_at'      => '2026-08-15T17:00:00Z',
+        'members_only' => false,
+    ]);
+    $eventId = $event['id'];
+
+    // Update an existing event (replaces all fields)
+    $updated = CarsHub::updateEvent($eventId, [
+        'title'     => 'Silvia Cup Round 1 — Updated',
+        'starts_at' => '2026-08-15T09:00:00Z',
+        'ends_at'   => '2026-08-15T18:00:00Z',
+    ]);
+
+    // Delete an event permanently
+    CarsHub::deleteEvent($eventId);
+} catch (CarsHubApiException $e) {
+    // Log or surface the error as appropriate for your application
+    logger()->error('CarsHub event import failed: ' . $e->getMessage());
+}
+```
+
+After each write the local events cache (`events.upcoming`, `events.past`, and the event detail if cached) is invalidated automatically, so the next read will return fresh data.
+
 ### Artisan commands
 
 ```bash
@@ -106,11 +147,11 @@ All options are in `config/carshub.php` after publishing.
 | `api_key` | `env('CARSHUB_API_KEY')` | API key from Crew Settings → Website Sync |
 | `crew_slug` | `env('CARSHUB_CREW_SLUG')` | Your crew's URL slug |
 | `api_base_url` | `https://carshub.nl/api` | CarsHub API base URL |
+| `event_import_key` | `env('CARSHUB_EVENT_IMPORT_KEY')` | Event import key (system-managed crews only) |
 | `cache.path` | `carshub` | Subdirectory under `storage/` for JSON files |
 | `cache.ttl.pages` | `86400` | Page cache TTL in seconds (24 h) |
 | `cache.ttl.events` | `3600` | Events cache TTL in seconds (1 h) |
 | `cache.ttl.members` | `3600` | Members cache TTL in seconds (1 h) |
-| `cache.ttl.pages` | `86400` | Pages cache TTL in seconds (24 h) |
 | `sync_on_boot` | `true` | Dispatch a sync job on first boot if cache is empty |
 | `timeout` | `10` | HTTP request timeout in seconds |
 

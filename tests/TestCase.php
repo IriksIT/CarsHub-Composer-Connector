@@ -19,6 +19,7 @@ abstract class TestCase extends OrchestraTestCase
         $app['config']->set('carshub.api_key', 'test-api-key');
         $app['config']->set('carshub.crew_slug', 'test-crew');
         $app['config']->set('carshub.api_base_url', 'https://carshub.nl/api');
+        $app['config']->set('carshub.event_import_key', 'eik_test-import-key');
         $app['config']->set('carshub.sync_on_boot', false);
         $app['config']->set('carshub.cache.path', 'carshub-test');
         $app['config']->set('carshub.cache.ttl', [

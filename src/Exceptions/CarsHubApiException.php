@@ -22,4 +22,9 @@ final class CarsHubApiException extends RuntimeException
     {
         return new self('CARSHUB_API_KEY and CARSHUB_CREW_SLUG must be set in your .env file.');
     }
+
+    public static function missingImportKey(): self
+    {
+        return new self('CARSHUB_EVENT_IMPORT_KEY must be set in your .env file to use event import methods.');
+    }
 }

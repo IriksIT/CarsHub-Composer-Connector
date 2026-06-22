@@ -28,12 +28,15 @@ final class CarsHubConnectorServiceProvider extends ServiceProvider
         });
 
         $this->app->singleton(CarsHubClient::class, function (Application $app): CarsHubClient {
+            $importKey = config('carshub.event_import_key');
+
             return new CarsHubClient(
                 http: $app->make(Http::class),
                 baseUrl: self::configString('carshub.api_base_url', 'https://carshub.nl/api'),
                 apiKey: self::configString('carshub.api_key', ''),
                 crewSlug: self::configString('carshub.crew_slug', ''),
                 timeout: self::configInt('carshub.timeout', 10),
+                importKey: is_string($importKey) && $importKey !== '' ? $importKey : null,
             );
         });
 

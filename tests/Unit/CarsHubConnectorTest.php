@@ -47,6 +47,22 @@ function makeConnector(JsonCacheStore $store, array $responses = []): CarsHubCon
     return new CarsHubConnector(cache: $store, client: $client);
 }
 
+function makeConnectorWithImportKey(JsonCacheStore $store, array $responses = []): CarsHubConnector
+{
+    HttpFacade::fake($responses);
+
+    $client = new CarsHubClient(
+        http: app(Http::class),
+        baseUrl: 'https://carshub.nl/api',
+        apiKey: 'test-key',
+        crewSlug: 'test-crew',
+        timeout: 5,
+        importKey: 'eik_test-import-key',
+    );
+
+    return new CarsHubConnector(cache: $store, client: $client);
+}
+
 describe('CarsHubConnector', function (): void {
     it('fetches all pages in one call and caches them', function (): void {
         $allPages = [
@@ -219,5 +235,97 @@ describe('CarsHubConnector', function (): void {
             ->toHaveKey('members')
             ->toHaveKey('cars')
             ->toHaveKey('stats');
+    });
+
+    // -------------------------------------------------------------------------
+    // Event Import API
+    // -------------------------------------------------------------------------
+
+    it('createEvent returns the new event and flushes the events cache', function (): void {
+        $this->store->put('events.upcoming', [['id' => 1, 'title' => 'Old Event']]);
+        $this->store->put('events.past', []);
+
+        $created = [
+            'id' => 12, 'title' => 'Silvia Cup Round 1', 'description' => null,
+            'location' => 'Zandvoort', 'address' => null,
+            'members_only' => false,
+            'starts_at' => '2026-08-15T09:00:00.000000Z',
+            'ends_at' => '2026-08-15T17:00:00.000000Z',
+            'avatar_url' => null, 'banner_url' => null,
+        ];
+
+        $connector = makeConnectorWithImportKey($this->store, [
+            'https://carshub.nl/api/crews/test-crew/import/events' => HttpFacade::response(['data' => $created], 201),
+        ]);
+
+        $result = $connector->createEvent([
+            'title' => 'Silvia Cup Round 1',
+            'starts_at' => '2026-08-15T09:00:00Z',
+        ]);
+
+        expect($result['id'])->toBe(12)
+            ->and($result['title'])->toBe('Silvia Cup Round 1')
+            ->and($this->store->isMissing('events.upcoming'))->toBeTrue()
+            ->and($this->store->isMissing('events.past'))->toBeTrue();
+    });
+
+    it('updateEvent returns updated event and clears the event lists and detail cache', function (): void {
+        $this->store->put('events.upcoming', [['id' => 12, 'title' => 'Old Title']]);
+        $this->store->put('events.detail.12', ['id' => 12, 'title' => 'Old Title', 'attendees' => []]);
+
+        $updated = [
+            'id' => 12, 'title' => 'Silvia Cup Round 1 — Updated',
+            'description' => 'Updated details.', 'location' => 'Spa',
+            'address' => null, 'members_only' => false,
+            'starts_at' => '2026-08-15T09:00:00.000000Z',
+            'ends_at' => '2026-08-15T18:00:00.000000Z',
+            'avatar_url' => null, 'banner_url' => null,
+        ];
+
+        $connector = makeConnectorWithImportKey($this->store, [
+            'https://carshub.nl/api/crews/test-crew/import/events/12' => HttpFacade::response(['data' => $updated]),
+        ]);
+
+        $result = $connector->updateEvent(12, [
+            'title' => 'Silvia Cup Round 1 — Updated',
+            'starts_at' => '2026-08-15T09:00:00Z',
+            'ends_at' => '2026-08-15T18:00:00Z',
+        ]);
+
+        expect($result['title'])->toBe('Silvia Cup Round 1 — Updated')
+            ->and($this->store->isMissing('events.upcoming'))->toBeTrue()
+            ->and($this->store->isMissing('events.detail.12'))->toBeTrue();
+    });
+
+    it('deleteEvent removes the event from cache and clears event lists', function (): void {
+        $this->store->put('events.upcoming', [['id' => 12]]);
+        $this->store->put('events.past', []);
+        $this->store->put('events.detail.12', ['id' => 12]);
+
+        $connector = makeConnectorWithImportKey($this->store, [
+            'https://carshub.nl/api/crews/test-crew/import/events/12' => HttpFacade::response(['message' => 'Event deleted.']),
+        ]);
+
+        $connector->deleteEvent(12);
+
+        expect($this->store->isMissing('events.upcoming'))->toBeTrue()
+            ->and($this->store->isMissing('events.past'))->toBeTrue()
+            ->and($this->store->isMissing('events.detail.12'))->toBeTrue();
+    });
+
+    it('createEvent throws when no import key is configured', function (): void {
+        $connector = makeConnector($this->store);
+
+        expect(fn () => $connector->createEvent(['title' => 'Test', 'starts_at' => '2026-08-01T10:00:00Z']))
+            ->toThrow(CarsHubApiException::class);
+    });
+
+    it('updateEvent throws on API error', function (): void {
+        $connector = makeConnectorWithImportKey($this->store, [
+            'https://carshub.nl/api/crews/test-crew/import/events/99' => HttpFacade::response([], 404),
+        ]);
+
+        expect(fn () => $connector->updateEvent(99, ['title' => 'Ghost', 'starts_at' => '2026-08-01T10:00:00Z']))
+            ->toThrow(CarsHubApiException::class);
     });
 });

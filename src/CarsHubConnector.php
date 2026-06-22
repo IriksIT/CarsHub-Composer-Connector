@@ -135,6 +135,57 @@ final class CarsHubConnector
     }
 
     // -------------------------------------------------------------------------
+    // Event Import API (system-managed crews only)
+    // -------------------------------------------------------------------------
+
+    /**
+     * Create a new event via the import API and invalidate the events cache.
+     * Throws CarsHubApiException on failure — callers must handle the error.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws CarsHubApiException
+     */
+    public function createEvent(array $data): array
+    {
+        $event = $this->client->createEvent($data);
+        $this->cache->forget('events.upcoming');
+        $this->cache->forget('events.past');
+        return $event;
+    }
+
+    /**
+     * Update an existing imported event and invalidate the events cache.
+     * Throws CarsHubApiException on failure — callers must handle the error.
+     *
+     * @param array<string, mixed> $data
+     * @return array<string, mixed>
+     * @throws CarsHubApiException
+     */
+    public function updateEvent(int $id, array $data): array
+    {
+        $event = $this->client->updateEvent($id, $data);
+        $this->cache->forget('events.upcoming');
+        $this->cache->forget('events.past');
+        $this->cache->forget("events.detail.{$id}");
+        return $event;
+    }
+
+    /**
+     * Delete an imported event and invalidate the events cache.
+     * Throws CarsHubApiException on failure — callers must handle the error.
+     *
+     * @throws CarsHubApiException
+     */
+    public function deleteEvent(int $id): void
+    {
+        $this->client->deleteEvent($id);
+        $this->cache->forget('events.upcoming');
+        $this->cache->forget('events.past');
+        $this->cache->forget("events.detail.{$id}");
+    }
+
+    // -------------------------------------------------------------------------
     // Sync API (used by commands and the boot job)
     // -------------------------------------------------------------------------
 
