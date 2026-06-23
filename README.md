@@ -67,13 +67,21 @@ $past     = CarsHub::events('past');
 
 // Full event detail including the attendee list (attending + maybe)
 $detail = CarsHub::eventDetail(3);
-// $detail['attendees']       — list of attendees
-// $detail['attendees_count'] — total attending/maybe count
+// $detail['attendees']         — list of attendees
+// $detail['attendees_count']   — total attending/maybe count
+// $detail['is_multi_day']      — true when the event spans multiple calendar days
+// $detail['event_days']        — ['2026-08-15', '2026-08-16', ...] (null for single-day events)
+// $detail['attendees_by_day']  — map of date → attendee list for multi-day events (null for single-day)
+//   Each attendee entry in attendees_by_day is extended with:
+//     'is_passenger' => true/false  — attending as a passenger (no car brought)
+//     'car'          => ['id','make','model','year','color'] | null
 
-// Crew member roster (id, name, username, avatar_url, role, staff_title, joined_at)
+// Crew member roster (id, name, username, avatar_url, role, staff_title, joined_at, social_links)
+// social_links: {instagram, facebook, x, snapchat, website} — null when not set
 $members = CarsHub::members();
 
-// All active cars owned by crew members
+// All active cars owned by crew members (includes social_links with owner fallback)
+// social_links: car's own link, or the owner's link for that platform when the car has none
 $cars = CarsHub::cars();
 
 // Crew overview stats (members, cars, representatives, past_events, upcoming_events)
