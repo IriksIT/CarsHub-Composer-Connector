@@ -113,8 +113,8 @@ describe('CarsHubConnector', function (): void {
             'title'           => 'Summer Meet 2026',
             'attendees_count' => 2,
             'attendees'       => [
-                ['id' => 1, 'name' => 'Sam',   'username' => 'sam_skyline', 'avatar_url' => null, 'status' => 'attending'],
-                ['id' => 2, 'name' => 'Silvia', 'username' => 'silvia_supra', 'avatar_url' => null, 'status' => 'maybe'],
+                ['id' => 1, 'name' => 'Sam',    'username' => 'sam_skyline',   'avatar_url' => null, 'status' => 'attending', 'is_passenger' => false, 'car' => ['id' => 7, 'make' => 'Nissan', 'model' => 'Skyline GT-R', 'year' => 1999, 'color' => 'Midnight Purple']],
+                ['id' => 2, 'name' => 'Silvia', 'username' => 'silvia_supra',  'avatar_url' => null, 'status' => 'maybe',     'is_passenger' => true,  'car' => null],
             ],
         ];
 
@@ -127,6 +127,10 @@ describe('CarsHubConnector', function (): void {
         expect($result)->not->toBeNull()
             ->and($result['attendees_count'])->toBe(2)
             ->and($result['attendees'][0]['status'])->toBe('attending')
+            ->and($result['attendees'][0]['is_passenger'])->toBeFalse()
+            ->and($result['attendees'][0]['car']['make'])->toBe('Nissan')
+            ->and($result['attendees'][1]['is_passenger'])->toBeTrue()
+            ->and($result['attendees'][1]['car'])->toBeNull()
             ->and($this->store->isMissing('events.detail.3'))->toBeFalse();
     });
 
