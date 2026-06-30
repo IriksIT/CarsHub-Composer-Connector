@@ -134,6 +134,36 @@ describe('CarsHubConnector', function (): void {
             ->and($this->store->isMissing('events.detail.3'))->toBeFalse();
     });
 
+    it('returns the qr_code_url from event detail', function (): void {
+        $detail = [
+            'id'              => 3,
+            'title'           => 'Summer Meet 2026',
+            'attendees_count' => 0,
+            'attendees'       => [],
+            'qr_code_url'     => 'https://carshub.nl/crews/skyline-crew/events/3/qr',
+        ];
+
+        $connector = makeConnector($this->store, [
+            'https://carshub.nl/api/crews/test-crew/events/3' => HttpFacade::response(['data' => $detail]),
+        ]);
+
+        expect($connector->getEventQrCodeUrl(3))->toBe('https://carshub.nl/crews/skyline-crew/events/3/qr');
+    });
+
+    it('returns null for qr_code_url when module is inactive', function (): void {
+        $detail = [
+            'id'          => 3,
+            'title'       => 'Summer Meet 2026',
+            'qr_code_url' => null,
+        ];
+
+        $connector = makeConnector($this->store, [
+            'https://carshub.nl/api/crews/test-crew/events/3' => HttpFacade::response(['data' => $detail]),
+        ]);
+
+        expect($connector->getEventQrCodeUrl(3))->toBeNull();
+    });
+
     it('returns null for event detail when API fails and cache is empty', function (): void {
         $connector = makeConnector($this->store, [
             'https://carshub.nl/api/crews/test-crew/events/99' => HttpFacade::response([], 404),
@@ -252,7 +282,7 @@ describe('CarsHubConnector', function (): void {
         $created = [
             'id' => 12, 'title' => 'Silvia Cup Round 1', 'description' => null,
             'location' => 'Zandvoort', 'address' => null,
-            'members_only' => false,
+            'members_only' => false, 'invite_only' => false,
             'starts_at' => '2026-08-15T09:00:00.000000Z',
             'ends_at' => '2026-08-15T17:00:00.000000Z',
             'avatar_url' => null, 'banner_url' => null,
@@ -280,7 +310,7 @@ describe('CarsHubConnector', function (): void {
         $updated = [
             'id' => 12, 'title' => 'Silvia Cup Round 1 — Updated',
             'description' => 'Updated details.', 'location' => 'Spa',
-            'address' => null, 'members_only' => false,
+            'address' => null, 'members_only' => false, 'invite_only' => false,
             'starts_at' => '2026-08-15T09:00:00.000000Z',
             'ends_at' => '2026-08-15T18:00:00.000000Z',
             'avatar_url' => null, 'banner_url' => null,

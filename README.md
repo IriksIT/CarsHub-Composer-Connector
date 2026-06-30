@@ -108,6 +108,7 @@ try {
         'starts_at'    => '2026-08-15T09:00:00Z',
         'ends_at'      => '2026-08-15T17:00:00Z',
         'members_only' => false,
+        'invite_only'  => false,
     ]);
     $eventId = $event['id'];
 

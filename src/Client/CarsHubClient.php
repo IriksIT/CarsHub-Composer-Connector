@@ -55,6 +55,23 @@ final class CarsHubClient
         return $this->get("crews/{$this->crewSlug}/events/{$eventId}");
     }
 
+    /**
+     * Returns the URL to a QR code image (PNG) for the given event.
+     * The QR code links through CarsHub for scan tracking, then redirects to the crew website.
+     * Returns null if the crew's QR codes module is not active or no website URL is configured.
+     *
+     * @return string|null
+     */
+    public function getEventQrCodeUrl(int $eventId): ?string
+    {
+        $detail = $this->getEventDetail($eventId);
+
+        /** @var string|null */
+        return isset($detail['qr_code_url']) && is_string($detail['qr_code_url'])
+            ? $detail['qr_code_url']
+            : null;
+    }
+
     /** @return list<array<string, mixed>> */
     public function getMembers(): array
     {
