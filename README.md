@@ -70,12 +70,13 @@ $detail = CarsHub::eventDetail(3);
 // $detail['attendees']         — list of attendees; every entry includes:
 //     'id', 'name', 'username', 'avatar_url', 'status' ('attending'|'maybe')
 //     'is_passenger' => true/false  — attending as a passenger (no car brought)
-//     'car'          => ['id','make','model','year','color'] | null
+//     'car'          => ['id','make','model','year','color'] | null — first car (backward-compat)
+//     'cars'         => [['id','make','model','year','color'], ...]  — all cars (may be empty)
 // $detail['attendees_count']   — total attending/maybe count
 // $detail['is_multi_day']      — true when the event spans multiple calendar days
 // $detail['event_days']        — ['2026-08-15', '2026-08-16', ...] (null for single-day events)
 // $detail['attendees_by_day']  — map of date → attendee list for multi-day events (null for single-day)
-//   Each entry in attendees_by_day has the same shape as attendees[] above (per-day car/is_passenger)
+//   Each entry in attendees_by_day has the same shape as attendees[] above (per-day cars/is_passenger)
 
 // Crew member roster (id, name, username, avatar_url, role, staff_title, joined_at, social_links)
 // social_links: {instagram, facebook, x, snapchat, website} — null when not set

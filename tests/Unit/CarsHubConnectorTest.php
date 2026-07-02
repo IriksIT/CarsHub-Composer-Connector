@@ -108,13 +108,16 @@ describe('CarsHubConnector', function (): void {
     });
 
     it('fetches event detail including attendees', function (): void {
+        $samCar = ['id' => 7, 'make' => 'Nissan', 'model' => 'Skyline GT-R', 'year' => 1999, 'color' => 'Midnight Purple'];
+        $samSilvia = ['id' => 8, 'make' => 'Nissan', 'model' => 'Silvia S15', 'year' => 2001, 'color' => 'Championship White'];
+
         $detail = [
             'id'              => 3,
             'title'           => 'Summer Meet 2026',
             'attendees_count' => 2,
             'attendees'       => [
-                ['id' => 1, 'name' => 'Sam',    'username' => 'sam_skyline',   'avatar_url' => null, 'status' => 'attending', 'is_passenger' => false, 'car' => ['id' => 7, 'make' => 'Nissan', 'model' => 'Skyline GT-R', 'year' => 1999, 'color' => 'Midnight Purple']],
-                ['id' => 2, 'name' => 'Silvia', 'username' => 'silvia_supra',  'avatar_url' => null, 'status' => 'maybe',     'is_passenger' => true,  'car' => null],
+                ['id' => 1, 'name' => 'Sam',    'username' => 'sam_r32',      'avatar_url' => null, 'status' => 'attending', 'is_passenger' => false, 'car' => $samCar,  'cars' => [$samCar, $samSilvia]],
+                ['id' => 2, 'name' => 'Silvia', 'username' => 'silvia_jdm',   'avatar_url' => null, 'status' => 'maybe',     'is_passenger' => true,  'car' => null,     'cars' => []],
             ],
         ];
 
@@ -129,8 +132,12 @@ describe('CarsHubConnector', function (): void {
             ->and($result['attendees'][0]['status'])->toBe('attending')
             ->and($result['attendees'][0]['is_passenger'])->toBeFalse()
             ->and($result['attendees'][0]['car']['make'])->toBe('Nissan')
+            ->and($result['attendees'][0]['cars'])->toHaveCount(2)
+            ->and($result['attendees'][0]['cars'][0]['model'])->toBe('Skyline GT-R')
+            ->and($result['attendees'][0]['cars'][1]['model'])->toBe('Silvia S15')
             ->and($result['attendees'][1]['is_passenger'])->toBeTrue()
             ->and($result['attendees'][1]['car'])->toBeNull()
+            ->and($result['attendees'][1]['cars'])->toBe([])
             ->and($this->store->isMissing('events.detail.3'))->toBeFalse();
     });
 
