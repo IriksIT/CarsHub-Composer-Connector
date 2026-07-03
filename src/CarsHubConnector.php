@@ -104,6 +104,19 @@ final class CarsHubConnector
     }
 
     /**
+     * URL to a QR code image (PNG) for the given event, or null if the crew's
+     * QR codes module is not active or no website URL is configured.
+     */
+    public function getEventQrCodeUrl(int $eventId): ?string
+    {
+        $detail = $this->eventDetail($eventId);
+
+        return isset($detail['qr_code_url']) && is_string($detail['qr_code_url'])
+            ? $detail['qr_code_url']
+            : null;
+    }
+
+    /**
      * @param 'upcoming'|'past' $type
      * @return list<array<string, mixed>>
      */
