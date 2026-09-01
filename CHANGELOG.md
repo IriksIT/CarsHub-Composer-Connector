@@ -1,3 +1,10 @@
+## [0.5.6](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.5...v0.5.6) (2026-09-01)
+
+
+### Bug Fixes
+
+* **deps:** bump league/commonmark to patch DoS vulnerabilities ([ef5d916](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/ef5d916e463febb7e759f1cb25b8e2ee111cafe3))
+
 ## [0.5.5](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.4...v0.5.5) (2026-09-01)
 
 
