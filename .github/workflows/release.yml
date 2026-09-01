@@ -104,6 +104,17 @@ jobs:
           token: ${{ secrets.GIT_TOKEN }}
           fetch-depth: 0
 
+      - name: Install changelog config dependencies
+        run: |
+          # conventional-changelog-conventionalcommits v8+ is ESM-only, so it
+          # can't be `require()`d directly by our config-file-path script —
+          # only TriPSs' own bundle can use it, because their build step
+          # converts it to CJS internally. Installing v7 (the version TriPSs
+          # itself depends on, and the last CJS-compatible major) here, next
+          # to the config file, makes Node's normal require() resolution find
+          # it via .github/node_modules.
+          npm install --no-save --no-audit --no-fund --prefix .github "conventional-changelog-conventionalcommits@^7.0.2"
+
       - name: Generate changelog & bump version
         id: changelog
         uses: TriPSs/conventional-changelog-action@v5
