@@ -117,7 +117,7 @@ jobs:
 
       - name: Generate changelog & bump version
         id: changelog
-        uses: TriPSs/conventional-changelog-action@v5
+        uses: TriPSs/conventional-changelog-action@v6
         with:
           github-token: ${{ secrets.GIT_TOKEN }}
           git-user-name: 'github-actions[bot]'
