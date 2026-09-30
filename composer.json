@@ -20,7 +20,7 @@
     },
     "require-dev": {
         "orchestra/testbench": "^9|^10|^11",
-        "pestphp/pest": "^3",
+        "pestphp/pest": "^3 || ^5",
         "phpstan/phpstan": "^2"
     },
     "autoload": {
