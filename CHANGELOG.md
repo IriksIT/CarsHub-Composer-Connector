@@ -1,3 +1,11 @@
+## [0.5.7](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.6...v0.5.7) (2026-09-30)
+
+
+### Dependencies
+
+* **deps:** bump league/flysystem ([ddf8adf](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/ddf8adf88d78380686a6b79062a33bf06a57e54c))
+* **deps:** update composer and npm dependencies, patch phpseclib CVE-2026-84308 ([b712ae0](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/b712ae0f39990d5b1254d71d56a56744c6386ed5))
+
 ## [0.5.6](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.5...v0.5.6) (2026-09-01)
 
 
