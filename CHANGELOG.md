@@ -1,3 +1,5 @@
+## [0.5.13](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.12...v0.5.13) (2026-10-07)
+
 ## [0.5.12](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.11...v0.5.12) (2026-10-07)
 
 
