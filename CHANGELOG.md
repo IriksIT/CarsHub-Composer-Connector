@@ -1,3 +1,10 @@
+## [0.5.12](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.11...v0.5.12) (2026-10-07)
+
+
+### Miscellaneous
+
+* **deps:** update all composer dependencies within constraints ([a5c60ab](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/a5c60ab778db25e23d61404d74989944c30e4b67))
+
 ## [0.5.11](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.10...v0.5.11) (2026-10-07)
 
 
