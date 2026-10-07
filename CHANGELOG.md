@@ -1,3 +1,10 @@
+## [0.5.11](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.10...v0.5.11) (2026-10-07)
+
+
+### Miscellaneous
+
+* **deps:** update outdated composer packages to latest allowed versions ([a12a1c4](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/a12a1c41837305cc7ecb5f6f1d37d502873d2a05))
+
 ## [0.5.10](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.9...v0.5.10) (2026-10-07)
 
 
