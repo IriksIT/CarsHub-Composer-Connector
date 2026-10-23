@@ -1,3 +1,10 @@
+## [0.5.15](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.14...v0.5.15) (2026-10-23)
+
+
+### Dependencies
+
+* **deps:** bump the composer-all group across 1 directory with 5 updates ([bd7a33f](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/bd7a33f5377f4af07c105f5753749c437579383c))
+
 ## [0.5.14](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.13...v0.5.14) (2026-10-12)
 
 
