@@ -1,3 +1,10 @@
+## [0.5.16](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.15...v0.5.16) (2026-10-23)
+
+
+### Dependencies
+
+* **deps:** bump composer and npm dependencies within constraints ([c7507bc](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/c7507bcc4ce14a6269fdb1eb31496ba4739abe82)), closes [#297](https://github.com/IriksIT/CarsHub-Composer-Connector/issues/297)
+
 ## [0.5.15](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.14...v0.5.15) (2026-10-23)
 
 
