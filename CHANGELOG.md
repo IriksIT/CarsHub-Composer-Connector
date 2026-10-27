@@ -1,3 +1,10 @@
+## [0.5.17](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.16...v0.5.17) (2026-10-27)
+
+
+### Dependencies
+
+* **deps-dev:** bump phpstan/phpstan ([7f61f3e](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/7f61f3eba2b107dc36472fc92a2a1c7110dc8697))
+
 ## [0.5.16](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.15...v0.5.16) (2026-10-23)
 
 
