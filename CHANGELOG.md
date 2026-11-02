@@ -1,3 +1,10 @@
+## [0.5.19](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.18...v0.5.19) (2026-11-02)
+
+
+### Dependencies
+
+* **deps:** update composer and npm dependencies ([3a46ac9](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/3a46ac9b55e0de794eec9fd855d3b02d2a6c0040))
+
 ## [0.5.18](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.17...v0.5.18) (2026-11-02)
 
 
