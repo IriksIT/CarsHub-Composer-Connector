@@ -1,3 +1,12 @@
+## [0.5.18](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.17...v0.5.18) (2026-11-02)
+
+
+### Dependencies
+
+* **deps-dev:** bump the composer-all group across 1 directory with 2 updates ([3a2c161](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/3a2c161f027e2dfd44998098e56b430331b5c019))
+* **deps:** bump spatie/laravel-medialibrary ([e12417c](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/e12417c35eef7a42357bf8cc81a5d61344e5fcca))
+* **deps:** bump the composer-all group across 2 directories with 4 updates ([6c7eb07](https://github.com/IriksIT/CarsHub-Composer-Connector/commit/6c7eb07fbf71648f72b32f8bc7643493f6fc8bcd))
+
 ## [0.5.17](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.16...v0.5.17) (2026-10-27)
 
 
