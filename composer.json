@@ -50,6 +50,11 @@
         },
         "platform": {
             "php": "8.4.1"
+        },
+        "policy": {
+            "cooldown": {
+                "period": "48 hours"
+            }
         }
     },
     "minimum-stability": "stable"
