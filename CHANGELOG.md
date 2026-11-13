@@ -1,3 +1,9 @@
+## [0.5.20] (2026-11-13)
+
+### Dependencies
+
+* **deps:** update carshub-connector dependencies within the 48-hour cooldown (526ff57)
+
 ## [0.5.19](https://github.com/IriksIT/CarsHub-Composer-Connector/compare/v0.5.18...v0.5.19) (2026-11-02)
 
 
