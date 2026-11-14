@@ -1,3 +1,10 @@
+## [0.5.22] (2026-11-14)
+
+### Dependencies
+
+* **deps:** bump 2 composer packages in modules/composer/carshub-connector (9ce479a)
+* **deps:** bump doctrine/deprecations from 1.1.6 to 1.2.0 (00002b8)
+
 ## [0.5.21] (2026-11-13)
 
 ## [0.5.20] (2026-11-13)
