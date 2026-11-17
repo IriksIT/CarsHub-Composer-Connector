@@ -1,3 +1,11 @@
+## [0.5.24] (2026-11-17)
+
+### Dependencies
+
+* **deps:** bump 4 composer packages in modules/composer/carshub-connector (dd2163c)
+* **deps:** bump 3 composer packages (e85b29f)
+* **deps:** bump orchestra/testbench-core from 11.6.0 to 11.6.1 (786ddf7)
+
 ## [0.5.23] (2026-11-15)
 
 ### Dependencies
