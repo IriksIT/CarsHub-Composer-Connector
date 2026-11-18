@@ -18,6 +18,7 @@ jobs:
       commands: |
         git remote add github https://x-access-token:@secret:GITHUB_TOKEN@@@github.com/IriksIT/CarsHub-Composer-Connector.git
         git push github HEAD:production
+        git push github --tags
     useTTY: false
     condition: SUCCESSFUL
   triggers:
