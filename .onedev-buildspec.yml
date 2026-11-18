@@ -1,0 +1,30 @@
+version: 53
+jobs:
+- name: Sync to GitHub
+  steps:
+  - !CheckoutStep
+    name: checkout
+    cloneCredential: !DefaultCredential {}
+    withLfs: false
+    withSubmodules: false
+    condition: SUCCESSFUL
+  - !CommandStep
+    name: push to GitHub
+    runInContainer: true
+    image: alpine/git:latest
+    runAs: '0:0'
+    interpreter: !PosixInterpreter
+      shell: sh
+      commands: |
+        git remote add github https://x-access-token:@secret:GITHUB_TOKEN@@github.com/IriksIT/CarsHub-Composer-Connector.git
+        git push github HEAD:production
+    useTTY: false
+    condition: SUCCESSFUL
+  triggers:
+  - !BranchUpdateTrigger
+    branches: production
+    userMatch: anyone
+  retryCondition: never
+  maxRetries: 3
+  retryDelay: 30
+  timeout: 3600
