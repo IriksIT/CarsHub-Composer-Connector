@@ -9,6 +9,52 @@ jobs:
     withSubmodules: false
     condition: SUCCESSFUL
   - !CommandStep
+    name: composer validate
+    runInContainer: true
+    runAs: '0:0'
+    image: composer:2
+    interpreter: !PosixInterpreter
+      shell: sh
+      commands: |
+        composer validate --no-check-publish
+    useTTY: false
+    condition: SUCCESSFUL
+  - !CommandStep
+    name: composer audit
+    runInContainer: true
+    runAs: '0:0'
+    image: composer:2
+    interpreter: !PosixInterpreter
+      shell: sh
+      commands: |
+        composer audit --locked
+    useTTY: false
+    condition: SUCCESSFUL
+  - !CommandStep
+    name: phpstan
+    runInContainer: true
+    runAs: '0:0'
+    image: webdevops/php:8.4
+    interpreter: !PosixInterpreter
+      shell: sh
+      commands: |
+        composer install --no-interaction --prefer-dist
+        ./vendor/bin/phpstan --error-format=github --memory-limit=512M
+    useTTY: false
+    condition: SUCCESSFUL
+  - !CommandStep
+    name: pest tests
+    runInContainer: true
+    runAs: '0:0'
+    image: webdevops/php:8.4
+    interpreter: !PosixInterpreter
+      shell: sh
+      commands: |
+        composer install --no-interaction --prefer-dist
+        ./vendor/bin/pest --stop-on-failure
+    useTTY: false
+    condition: SUCCESSFUL
+  - !CommandStep
     name: push to GitHub
     runInContainer: true
     image: alpine/git:latest
