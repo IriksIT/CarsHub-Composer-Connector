@@ -16,6 +16,7 @@ jobs:
     interpreter: !PosixInterpreter
       shell: sh
       commands: |
+        git fetch --quiet origin --tags
         git remote add github https://x-access-token:@secret:GITHUB_TOKEN@@@github.com/IriksIT/CarsHub-Composer-Connector.git
         git push github HEAD:production
         git push github --tags
