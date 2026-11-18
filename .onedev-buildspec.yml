@@ -16,7 +16,7 @@ jobs:
     interpreter: !PosixInterpreter
       shell: sh
       commands: |
-        git remote add github https://x-access-token:@secret:GITHUB_TOKEN@@github.com/IriksIT/CarsHub-Composer-Connector.git
+        git remote add github https://x-access-token:@secret:GITHUB_TOKEN@@@github.com/IriksIT/CarsHub-Composer-Connector.git
         git push github HEAD:production
     useTTY: false
     condition: SUCCESSFUL
