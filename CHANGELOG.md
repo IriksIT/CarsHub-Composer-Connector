@@ -1,3 +1,9 @@
+## [0.5.28] (2026-11-21)
+
+### Dependencies
+
+* **deps:** bump guzzlehttp/psr7 from 3.4.0 to 3.5.0 in modules/composer/carshub-connector (cab6467)
+
 ## [0.5.27] (2026-11-20)
 
 ### Dependencies
