@@ -1,3 +1,9 @@
+## [0.5.32] (2026-11-25)
+
+### Dependencies
+
+* **deps:** bump 3 composer packages in modules/composer/carshub-connector (1fa52dc)
+
 ## [0.5.31] (2026-11-24)
 
 ### Dependencies
